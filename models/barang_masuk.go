@@ -1,18 +1,20 @@
 package models
 
 import (
+	"time"
+
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"gorm.io/gorm"
 )
 
 type Barang_Masuk struct {
 	gorm.Model
-	No_BPB              string `json:"no_bpb" form:"no_bpb"`
-	Tgl_terima          string `json:"tgl_terima" form:"tgl_terima"`
-	Qty                 int    `json:"qty" form:"qty"`
-	Keterangan          string `json:"keterangan" form:"keterangan"`
-	GudangID            int
-	Gudang              Gudang `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	Persediaan_BarangID int
-	Persediaan_Barang   Persediaan_Barang `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	No_BPB              string    `json:"no_bpb" form:"no_bpb"`
+	Tgl_terima          time.Time `json:"tgl_terima" form:"tgl_terima"`
+	Qty                 int       `json:"qty" form:"qty"`
+	Keterangan          string    `json:"keterangan" form:"keterangan"`
+	GudangID            int       `json:"gudang_id" form:"gudang_id"`
+	Gudang              Gudang
+	Persediaan_BarangID int `json:"persediaan_barang_id" form:"persediaan_barang_id"`
+	Persediaan_Barang   Persediaan_Barang
 }

@@ -56,15 +56,8 @@ func UpdateUserController(c echo.Context) error {
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	username := c.FormValue("username")
-	status := c.FormValue("status")
-	password := c.FormValue("password")
-
 	var input models.User
-
-	input.Username = username
-	input.Password = password
-	input.Status = status
+	c.Bind(&input)
 
 	if err := config.DB.Model(&users).Where("id = ?", id).Updates(input).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")

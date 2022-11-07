@@ -3,8 +3,8 @@ package models
 import (
 	"time"
 
+	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"gorm.io/gorm"
 )
 
 type Officer struct {
@@ -16,6 +16,14 @@ type Officer struct {
 	Alamat        string    `json:"alamat" form:"alamat"`
 	No_hp         string    `json:"no_hp" form:"no_hp"`
 	Jabatan       string    `json:"jabatan" form:"jabatan"`
-	UserID        int       `json:"user_id" form:"user_id"`
-	User          User      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	UserID        int       `json:"user_id"`
+	User          User
 }
+
+// func (officer *Officer) BeforeCreate(scope *gorm.Scope) (err error) {
+// 	dateFormat := "02/01/2006 MST"
+// 	value := officer.Tgl_lahir.String() + " WIB"
+// 	tgl, _ := time.Parse(dateFormat, value)
+// 	scope.SetColumn("Tgl_lahir", tgl)
+// 	return
+// }

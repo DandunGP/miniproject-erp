@@ -3,7 +3,10 @@ package config
 import (
 	"erp/models"
 	"fmt"
+	"log"
+	"os"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -27,12 +30,16 @@ type Config struct {
 
 func InitDB() {
 
+	errLoad := godotenv.Load(".env")
+	if errLoad != nil {
+		log.Fatalf("Error loading .env file")
+	}
 	config := Config{
-		DB_Username: "root",
-		DB_Password: "",
-		DB_Port:     "3306",
-		DB_Host:     "localhost",
-		DB_Name:     "crud_testing_go",
+		DB_Username: os.Getenv("DB_Username"),
+		DB_Password: os.Getenv("DB_Password"),
+		DB_Port:     os.Getenv("DB_Port"),
+		DB_Host:     os.Getenv("DB_Host"),
+		DB_Name:     os.Getenv("DB_Name"),
 	}
 
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
@@ -52,9 +59,10 @@ func InitDB() {
 
 func InitialMigration() {
 	DB.AutoMigrate(&models.User{})
-	DB.AutoMigrate(&models.Book{})
 	DB.AutoMigrate(&models.Officer{})
 	DB.AutoMigrate(&models.Gudang{})
 	DB.AutoMigrate(&models.Persediaan_Barang{})
 	DB.AutoMigrate(&models.Barang_Masuk{})
+	DB.AutoMigrate(&models.BOM{})
+	DB.AutoMigrate(&models.WO{})
 }

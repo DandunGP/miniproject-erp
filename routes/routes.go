@@ -21,6 +21,24 @@ func New() *echo.Echo {
 	e.DELETE("/officers/:id", controllers.DeleteOfficerController)
 	e.PUT("/officers/:id", controllers.UpdateOfficerController)
 
+	e.GET("/gudangs", controllers.GetGudangsController)
+	e.GET("/gudangs/:id", controllers.GetGudangController)
+	e.POST("/gudangs", controllers.CreateGudangController)
+	e.DELETE("/gudangs/:id", controllers.DeleteGudangController)
+	e.PUT("/gudangs/:id", controllers.UpdateGudangController)
+
+	e.GET("/persediaan_barang", controllers.GetPersediaansController)
+	e.GET("/persediaan_barang/:id", controllers.GetPersediaanController)
+	e.POST("/persediaan_barang", controllers.CreatePersediaanController)
+	e.DELETE("/persediaan_barang/:id", controllers.DeletePersediaanController)
+	e.PUT("/persediaan_barang/:id", controllers.UpdatePersediaanController)
+
+	e.GET("/barang_masuk", controllers.GetBarangsController)
+	e.GET("/barang_masuk/:id", controllers.GetBarangController)
+	e.POST("/barang_masuk", controllers.CreateBarangController)
+	e.DELETE("/barang_masuk/:id", controllers.DeleteBarangController)
+	e.PUT("/barang_masuk/:id", controllers.UpdateBarangController)
+
 	// e.POST("/login", controllers.LoginController)
 
 	// eJwtAuth := e.Group("auth")

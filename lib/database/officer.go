@@ -10,7 +10,7 @@ import (
 func GetOfficers() (interface{}, error) {
 	var officers []models.Officer
 
-	if err := config.DB.Find(&officers).Error; err != nil {
+	if err := config.DB.Preload("User").Find(&officers).Error; err != nil {
 		return nil, err
 	}
 	return officers, nil

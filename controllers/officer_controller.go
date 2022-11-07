@@ -29,21 +29,34 @@ func GetOfficerController(c echo.Context) error {
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	if err := config.DB.Where("id = ?", id).First(&officer).Error; err != nil {
+	if err := config.DB.Where("id = ?", id).Preload("User").First(&officer).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success get user",
+		"message": "success get officer",
 		"officer": officer,
 	})
 }
 
 func CreateOfficerController(c echo.Context) error {
 	var officer models.Officer
-	c.Bind(&officer)
 
-	if err := config.DB.Save(&officer).Error; err != nil {
+	officer.Nama = c.FormValue("nama")
+	officer.NIK = c.FormValue("nik")
+	officer.Jenis_kelamin = c.FormValue("jenis_kelamin")
+	officer.Alamat = c.FormValue("alamat")
+	officer.No_hp = c.FormValue("no_hp")
+	officer.Jabatan = c.FormValue("jabatan")
+	officer.UserID, _ = strconv.Atoi(c.FormValue("user_id"))
+
+	tgl_lahir := c.FormValue("tgl_lahir")
+	dateFormat := "02/01/2006 MST"
+	value := tgl_lahir + " WIB"
+	tgl, _ := time.Parse(dateFormat, value)
+	officer.Tgl_lahir = tgl
+
+	if err := config.DB.Create(&officer).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
