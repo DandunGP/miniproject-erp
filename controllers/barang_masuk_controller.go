@@ -63,7 +63,10 @@ func CreateBarangController(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
-	if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Updates(map[string]interface{}{"qty": gorm.Expr("qty + ?", qtyInt), "last_input_qty": qtyInt, "last_input_id": persediaan_barang_idInt}).Error; err != nil {
+	if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Updates(map[string]interface{}{
+		"qty":            gorm.Expr("qty + ?", qtyInt),
+		"last_input_qty": qtyInt,
+		"last_input_id":  persediaan_barang_idInt}).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Qty error")
 	}
 
@@ -107,13 +110,21 @@ func UpdateBarangController(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
-	if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Where("last_input_id = ?", persediaan_barang_idInt).Updates(map[string]interface{}{"qty": gorm.Expr("qty + ? - last_input_qty", qtyInt), "last_input_qty": qtyInt, "last_input_id": persediaan_barang_idInt}).Error; err != nil {
+	if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Where("last_input_id = ?", persediaan_barang_idInt).Updates(map[string]interface{}{"qty": gorm.Expr("qty + ? - last_input_qty", qtyInt)}).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Qty error")
 	}
 
-	if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Where("last_input_id != ?", persediaan_barang_idInt).Updates(map[string]interface{}{"qty": gorm.Expr("qty - last_input_qty"), "last_input_qty": qtyInt, "last_input_id": persediaan_barang_idInt}).Error; err != nil {
+	if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Where("last_input_id = ?", persediaan_barang_idInt).Updates(map[string]interface{}{"last_input_qty": qtyInt, "last_input_id": persediaan_barang_idInt}).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Qty error")
 	}
+
+	// if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Where("last_input_id != ?", persediaan_barang_idInt).Updates(map[string]interface{}{"qty": gorm.Expr("qty - last_input_qty")}).Error; err != nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, "Qty error")
+	// }
+
+	// if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Where("last_input_id != ?", persediaan_barang_idInt).Updates(map[string]interface{}{"last_input_qty": qtyInt, "last_input_id": persediaan_barang_idInt}).Error; err != nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, "Qty error")
+	// }
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "update success",
@@ -128,8 +139,6 @@ func DeleteBarangController(c echo.Context) error {
 	if err := config.DB.Delete(&barang, id).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
-
-	config.DB.Delete(&barang, id)
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success delete barang",

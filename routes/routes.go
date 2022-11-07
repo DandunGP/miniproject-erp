@@ -39,9 +39,29 @@ func New() *echo.Echo {
 	e.DELETE("/barang_masuk/:id", controllers.DeleteBarangController)
 	e.PUT("/barang_masuk/:id", controllers.UpdateBarangController)
 
-	// e.POST("/login", controllers.LoginController)
+	e.GET("/bom", controllers.GetBOMsController)
+	e.GET("/bom/:id", controllers.GetBOMController)
+	e.POST("/bom", controllers.CreateBOMController)
+	e.DELETE("/bom/:id", controllers.DeleteBOMController)
+	e.PUT("/bom/:id", controllers.UpdateBOMController)
+
+	e.GET("/wo", controllers.GetWOsController)
+	e.GET("/wo/:id", controllers.GetWOController)
+	e.POST("/wo", controllers.CreateWOController)
+	e.DELETE("/wo/:id", controllers.DeleteWOController)
+	e.PUT("/wo/:id", controllers.UpdateWOController)
+
+	e.GET("/produk", controllers.GetProduksController)
+	e.GET("/produk/:id", controllers.GetProdukController)
+	e.POST("/produk", controllers.CreateProdukController)
+	e.DELETE("/produk/:id", controllers.DeleteProdukController)
+	e.PUT("/produk/:id", controllers.UpdateProdukController)
+
+	e.POST("/login", controllers.LoginController)
 
 	// eJwtAuth := e.Group("auth")
+	// eJwtAuth.Use(middleware.checkAdmin())
+	// eJwtAuth.GET("/wo", controllers.GetWOsController)
 	// eJwtAuth.GET("/users/:id", controllers.GetUserController)
 	// eJwtAuth.GET("/books", controllers.GetBooksController)
 	// eJwtAuth.GET("/books/:id", controllers.GetBookController)

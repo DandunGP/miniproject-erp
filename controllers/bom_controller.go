@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"erp/config"
-	"erp/lib/database"
 	"erp/models"
 	"net/http"
 	"strconv"
@@ -10,56 +9,56 @@ import (
 	"github.com/labstack/echo"
 )
 
-func GetUsersController(c echo.Context) error {
-	users, err := database.GetUsers()
+func GetBOMsController(c echo.Context) error {
+	var boms []models.BOM
 
-	if err != nil {
+	if err := config.DB.Find(&boms).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"status": "success get all users",
-		"users":  users,
+		"status": "success get all boms",
+		"boms":   boms,
 	})
 }
 
-func GetUserController(c echo.Context) error {
-	var users models.User
+func GetBOMController(c echo.Context) error {
+	var bom models.BOM
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	if err := config.DB.Where("id = ?", id).First(&users).Error; err != nil {
+	if err := config.DB.Where("id = ?", id).First(&bom).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success get user",
-		"users":   users,
+		"message": "success get bom",
+		"bom":     bom,
 	})
 }
 
-func CreateUserController(c echo.Context) error {
-	var user models.User
-	c.Bind(&user)
+func CreateBOMController(c echo.Context) error {
+	var bom models.BOM
+	c.Bind(&bom)
 
-	if err := config.DB.Save(&user).Error; err != nil {
+	if err := config.DB.Create(&bom).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success create new user",
-		"user":    user,
+		"message": "success create new bom",
+		"bom":     bom,
 	})
 }
 
-func UpdateUserController(c echo.Context) error {
-	var users models.User
+func UpdateBOMController(c echo.Context) error {
+	var bom models.BOM
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	var input models.User
+	var input models.BOM
 	c.Bind(&input)
 
-	if err := config.DB.Model(&users).Where("id = ?", id).Updates(input).Error; err != nil {
+	if err := config.DB.Model(&bom).Where("id = ?", id).Updates(input).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
@@ -68,16 +67,16 @@ func UpdateUserController(c echo.Context) error {
 	})
 }
 
-func DeleteUserController(c echo.Context) error {
-	var users models.User
+func DeleteBOMController(c echo.Context) error {
+	var bom models.BOM
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	if err := config.DB.Delete(&users, id).Error; err != nil {
+	if err := config.DB.Delete(&bom, id).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success delete user",
+		"message": "success delete BOM",
 	})
 }

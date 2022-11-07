@@ -1,0 +1,57 @@
+version: '3'
+services:
+  app:
+    container_name: full_app
+    build: .
+    ports: 
+      - 8080:8080 
+    restart: on-failure
+    volumes:
+      - api:/usr/src/app/
+    depends_on:
+      - fullstack-mysql   
+    networks:
+      - fullstack
+  
+  fullstack-mysql:
+    image: mysql:5.7
+    container_name: full_db_mysql
+    ports: 
+      - 3306:3306
+    environment: 
+      - MYSQL_ROOT_HOST=127.0.0.1
+      - MYSQL_USER='root'
+      - MYSQL_PASSWORD=''
+      - MYSQL_DATABASE=mini-project-erp
+      - MYSQL_ROOT_PASSWORD=''
+      - MYSQL_ALLOW_EMPY_PASSWORD=1
+      - MYSQL_RANDOM_ROOT_PASSWORD=1
+    volumes:
+      - database_mysql:/var/lib/mysql
+    networks:
+      - fullstack
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_container
+    depends_on:
+      - fullstack-mysql
+    environment:
+      - PMA_HOST=mysql 
+      - PMA_USER='root'
+      - PMA_PORT='3306'
+      - PMA_PASSWORD=''
+    ports:
+      - 9090:80
+    restart: always
+    networks:
+      - fullstack
+
+
+volumes:
+  api:
+  database_mysql:
+
+networks:
+  fullstack:
+    driver: bridge

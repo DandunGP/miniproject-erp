@@ -15,7 +15,7 @@ type WO struct {
 	TipeJadi   string    `json:"tipe" form:"tipe"`
 	BOMID      int       `json:"bom_id" form:"bom_id"`
 	BOM        BOM
-	Qty        int `json:"qty" form:"qty"`
 	GudangID   int `json:"gudang_id" form:"gudang_id"`
 	Gudang     Gudang
+	PegawaiID  int `json:"pegawai_id" form:"pegawai_id"`
 }

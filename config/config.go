@@ -65,4 +65,5 @@ func InitialMigration() {
 	DB.AutoMigrate(&models.Barang_Masuk{})
 	DB.AutoMigrate(&models.BOM{})
 	DB.AutoMigrate(&models.WO{})
+	DB.AutoMigrate(&models.Produk{})
 }

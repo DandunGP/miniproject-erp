@@ -112,8 +112,6 @@ func DeleteOfficerController(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
-	config.DB.Delete(&officer, id)
-
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success delete officer",
 	})
