@@ -60,10 +60,10 @@ func InitDB() {
 func InitialMigration() {
 	DB.AutoMigrate(&models.User{})
 	DB.AutoMigrate(&models.Officer{})
-	DB.AutoMigrate(&models.Gudang{})
-	DB.AutoMigrate(&models.Persediaan_Barang{})
-	DB.AutoMigrate(&models.Barang_Masuk{})
-	DB.AutoMigrate(&models.BOM{})
-	DB.AutoMigrate(&models.WO{})
-	DB.AutoMigrate(&models.Produk{})
+	DB.AutoMigrate(&models.Storage{})
+	DB.AutoMigrate(&models.Invetory{})
+	DB.AutoMigrate(&models.Incoming_goods{})
+	DB.AutoMigrate(&models.Bill_material{})
+	DB.AutoMigrate(&models.Work_order{})
+	DB.AutoMigrate(&models.Product{})
 }

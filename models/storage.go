@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Gudang struct {
+type Storage struct {
 	gorm.Model
 	Kode_gudang string `json:"kode_gudang" form:"kode_gudang"`
 	Nama        string `json:"nama" form:"nama"`

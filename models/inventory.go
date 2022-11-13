@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Persediaan_Barang struct {
+type Invetory struct {
 	gorm.Model
 	Kode_barang    string `json:"kode_barang" form:"kode_barang"`
 	Nama           string `json:"nama" form:"nama"`

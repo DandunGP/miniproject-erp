@@ -1,20 +1,23 @@
 package controllers
 
 import (
+	"encoding/json"
 	"erp/config"
 	"erp/models"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/gommon/log"
 	"gorm.io/gorm"
 )
 
 func GetWOsController(c echo.Context) error {
-	var wo []models.WO
+	var wo []models.Work_order
 
-	if err := config.DB.Find(&wo).Error; err != nil {
+	if err := config.DB.Preload("BOM").Preload("Gudang").Preload("Officer").Find(&wo).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
@@ -25,11 +28,11 @@ func GetWOsController(c echo.Context) error {
 }
 
 func GetWOController(c echo.Context) error {
-	var wo models.WO
+	var wo models.Work_order
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	if err := config.DB.Where("id = ?", id).First(&wo).Error; err != nil {
+	if err := config.DB.Where("id = ?", id).Preload("BOM").Preload("Gudang").Preload("Officer").First(&wo).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
@@ -40,72 +43,63 @@ func GetWOController(c echo.Context) error {
 }
 
 func CreateWOController(c echo.Context) error {
-	var wo models.WO
-	var bom models.BOM
-	var persediaan models.Persediaan_Barang
+	var wo models.Work_order
+	var bom models.Bill_material
+	var persediaan models.Invetory
 
-	qtyInt, _ := strconv.Atoi(c.FormValue("qty_wo"))
-	bomInt, _ := strconv.Atoi(c.FormValue("bom_id"))
-	gudangInt, _ := strconv.Atoi(c.FormValue("gudang_id"))
-	pegawaiInt, _ := strconv.Atoi(c.FormValue("pegawai_id"))
+	var input map[string]interface{}
 
-	wo.NoWO = c.FormValue("no_wo")
-	wo.Keterangan = c.FormValue("keterangan")
-	wo.TipeJadi = c.FormValue("tipe")
-	wo.Qty_WO = qtyInt
-	wo.BOMID = bomInt
-	wo.GudangID = gudangInt
-	wo.PegawaiID = pegawaiInt
+	body, _ := ioutil.ReadAll(c.Request().Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		log.Error("empty json body")
+		return nil
+	}
 
-	tgl_terima := c.FormValue("tgl_wo")
-	dateFormat := "02/01/2006 MST"
-	value := tgl_terima + " WIB"
-	tgl, _ := time.Parse(dateFormat, value)
-	wo.Tgl_WO = tgl
+	tgl_wo := input["tgl_wo"].(string)
+	dateFormat := "02/01/2006"
+	tgl, _ := time.Parse(dateFormat, tgl_wo)
+	input["tgl_wo"] = tgl
+	input["created_at"] = time.Now()
+	input["updated_at"] = time.Now()
 
-	if err := config.DB.Model(&bom).Where("id = ?", bomInt).First(&bom).Error; err != nil {
+	if err := config.DB.Model(&bom).Where("id = ?", input["bom_id"]).First(&bom).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
-	if err := config.DB.Create(&wo).Error; err != nil {
+	if err := config.DB.Model(&wo).Create(input).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
 	if err := config.DB.Model(&persediaan).Where("id = ?", bom.Persediaan_BarangID).Updates(map[string]interface{}{
-		"qty": gorm.Expr("qty - ?", qtyInt)}).Error; err != nil {
+		"qty": gorm.Expr("qty - ?", input["qty_wo"])}).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Qty error")
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success create new wo",
-		"wo":      wo,
+		"wo":      input,
 	})
 }
 
 func UpdateWOController(c echo.Context) error {
-	var wo models.WO
-
-	qtyInt, _ := strconv.Atoi(c.FormValue("qty_wo"))
-	bomInt, _ := strconv.Atoi(c.FormValue("bom_id"))
-	gudangInt, _ := strconv.Atoi(c.FormValue("gudang_id"))
-	pegawaiInt, _ := strconv.Atoi(c.FormValue("pegawai_id"))
+	var wo models.Work_order
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	var input models.WO
+	var input map[string]interface{}
 
-	input.NoWO = c.FormValue("no_wo")
-	input.Keterangan = c.FormValue("keterangan")
-	input.TipeJadi = c.FormValue("tipe")
-	input.Qty_WO = qtyInt
-	input.BOMID = bomInt
-	input.GudangID = gudangInt
-	input.PegawaiID = pegawaiInt
+	body, _ := ioutil.ReadAll(c.Request().Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		log.Error("empty json body")
+		return nil
+	}
 
-	tgl_terima := c.FormValue("tgl_wo")
-	dateFormat := "02/01/2006 MST"
-	value := tgl_terima + " WIB"
-	tgl, _ := time.Parse(dateFormat, value)
-	input.Tgl_WO = tgl
+	tgl_wo := input["tgl_wo"].(string)
+	dateFormat := "02/01/2006"
+	tgl, _ := time.Parse(dateFormat, tgl_wo)
+	input["tgl_wo"] = tgl
+	input["updated_at"] = time.Now()
 
 	if err := config.DB.Model(&wo).Where("id = ?", id).Updates(input).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
@@ -117,7 +111,7 @@ func UpdateWOController(c echo.Context) error {
 }
 
 func DeleteWOController(c echo.Context) error {
-	var wo models.WO
+	var wo models.Work_order
 
 	id, _ := strconv.Atoi(c.Param("id"))
 

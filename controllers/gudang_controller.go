@@ -10,7 +10,7 @@ import (
 )
 
 func GetGudangsController(c echo.Context) error {
-	var gudangs []models.Gudang
+	var gudangs []models.Storage
 
 	if err := config.DB.Find(&gudangs).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
@@ -23,7 +23,7 @@ func GetGudangsController(c echo.Context) error {
 }
 
 func GetGudangController(c echo.Context) error {
-	var gudang models.Gudang
+	var gudang models.Storage
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
@@ -38,7 +38,7 @@ func GetGudangController(c echo.Context) error {
 }
 
 func CreateGudangController(c echo.Context) error {
-	var gudang models.Gudang
+	var gudang models.Storage
 	c.Bind(&gudang)
 
 	if err := config.DB.Create(&gudang).Error; err != nil {
@@ -51,11 +51,11 @@ func CreateGudangController(c echo.Context) error {
 }
 
 func UpdateGudangController(c echo.Context) error {
-	var gudang models.Gudang
+	var gudang models.Storage
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	var input models.Gudang
+	var input models.Storage
 	c.Bind(&input)
 
 	if err := config.DB.Model(&gudang).Where("id = ?", id).Updates(input).Error; err != nil {
@@ -68,7 +68,7 @@ func UpdateGudangController(c echo.Context) error {
 }
 
 func DeleteGudangController(c echo.Context) error {
-	var gudang models.Gudang
+	var gudang models.Storage
 
 	id, _ := strconv.Atoi(c.Param("id"))
 

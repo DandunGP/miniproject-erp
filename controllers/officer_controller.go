@@ -1,14 +1,17 @@
 package controllers
 
 import (
+	"encoding/json"
 	"erp/config"
 	"erp/lib/database"
 	"erp/models"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/gommon/log"
 )
 
 func GetOfficersController(c echo.Context) error {
@@ -41,27 +44,28 @@ func GetOfficerController(c echo.Context) error {
 
 func CreateOfficerController(c echo.Context) error {
 	var officer models.Officer
+	var input map[string]interface{}
 
-	officer.Nama = c.FormValue("nama")
-	officer.NIK = c.FormValue("nik")
-	officer.Jenis_kelamin = c.FormValue("jenis_kelamin")
-	officer.Alamat = c.FormValue("alamat")
-	officer.No_hp = c.FormValue("no_hp")
-	officer.Jabatan = c.FormValue("jabatan")
-	officer.UserID, _ = strconv.Atoi(c.FormValue("user_id"))
+	body, _ := ioutil.ReadAll(c.Request().Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		log.Error("empty json body")
+		return nil
+	}
 
-	tgl_lahir := c.FormValue("tgl_lahir")
-	dateFormat := "02/01/2006 MST"
-	value := tgl_lahir + " WIB"
-	tgl, _ := time.Parse(dateFormat, value)
-	officer.Tgl_lahir = tgl
+	tgl_lahir := input["tgl_lahir"].(string)
+	dateFormat := "02/01/2006"
+	tgl, _ := time.Parse(dateFormat, tgl_lahir)
+	input["tgl_lahir"] = tgl
+	input["created_at"] = time.Now()
+	input["updated_at"] = time.Now()
 
-	if err := config.DB.Create(&officer).Error; err != nil {
+	if err := config.DB.Model(&officer).Create(input).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success create new officer",
-		"officer": officer,
+		"officer": input,
 	})
 }
 
@@ -70,29 +74,20 @@ func UpdateOfficerController(c echo.Context) error {
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	nama := c.FormValue("nama")
-	nik := c.FormValue("nik")
-	tgl_lahir := c.FormValue("tgl_lahir")
-	jenis_kelamin := c.FormValue("jenis_kelamin")
-	alamat := c.FormValue("alamat")
-	no_hp := c.FormValue("no_hp")
-	jabatan := c.FormValue("jabatan")
-	user_id, _ := strconv.Atoi(c.FormValue("user_id"))
+	var input map[string]interface{}
 
-	dateFormat := "02/01/2006 MST"
-	value := tgl_lahir + " WIB"
-	tgl, _ := time.Parse(dateFormat, value)
+	body, _ := ioutil.ReadAll(c.Request().Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		log.Error("empty json body")
+		return nil
+	}
 
-	var input models.Officer
-
-	input.Nama = nama
-	input.NIK = nik
-	input.Tgl_lahir = tgl
-	input.Jenis_kelamin = jenis_kelamin
-	input.Alamat = alamat
-	input.No_hp = no_hp
-	input.Jabatan = jabatan
-	input.UserID = user_id
+	tgl_lahir := input["tgl_lahir"].(string)
+	dateFormat := "02/01/2006"
+	tgl, _ := time.Parse(dateFormat, tgl_lahir)
+	input["tgl_lahir"] = tgl
+	input["updated_at"] = time.Now()
 
 	if err := config.DB.Model(&officer).Where("id = ?", id).Updates(input).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")

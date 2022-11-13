@@ -10,7 +10,7 @@ import (
 )
 
 func GetPersediaansController(c echo.Context) error {
-	var persediaans []models.Persediaan_Barang
+	var persediaans []models.Invetory
 
 	if err := config.DB.Find(&persediaans).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
@@ -23,7 +23,7 @@ func GetPersediaansController(c echo.Context) error {
 }
 
 func GetPersediaanController(c echo.Context) error {
-	var persediaan models.Persediaan_Barang
+	var persediaan models.Invetory
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
@@ -38,7 +38,7 @@ func GetPersediaanController(c echo.Context) error {
 }
 
 func CreatePersediaanController(c echo.Context) error {
-	var persediaan models.Persediaan_Barang
+	var persediaan models.Invetory
 	c.Bind(&persediaan)
 
 	if err := config.DB.Create(&persediaan).Error; err != nil {
@@ -51,11 +51,11 @@ func CreatePersediaanController(c echo.Context) error {
 }
 
 func UpdatePersediaanController(c echo.Context) error {
-	var persediaan models.Persediaan_Barang
+	var persediaan models.Invetory
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	var input models.Persediaan_Barang
+	var input models.Invetory
 	c.Bind(&input)
 
 	if err := config.DB.Model(&persediaan).Where("id = ?", id).Updates(input).Error; err != nil {
@@ -68,7 +68,7 @@ func UpdatePersediaanController(c echo.Context) error {
 }
 
 func DeletePersediaanController(c echo.Context) error {
-	var persediaan models.Persediaan_Barang
+	var persediaan models.Invetory
 
 	id, _ := strconv.Atoi(c.Param("id"))
 

@@ -10,9 +10,9 @@ import (
 )
 
 func GetProduksController(c echo.Context) error {
-	var produks []models.Produk
+	var produks []models.Product
 
-	if err := config.DB.Find(&produks).Error; err != nil {
+	if err := config.DB.Preload("Gudang").Find(&produks).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
@@ -23,11 +23,11 @@ func GetProduksController(c echo.Context) error {
 }
 
 func GetProdukController(c echo.Context) error {
-	var produk models.Produk
+	var produk models.Product
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	if err := config.DB.Where("id = ?", id).First(&produk).Error; err != nil {
+	if err := config.DB.Where("id = ?", id).Preload("Gudang").First(&produk).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
@@ -38,7 +38,7 @@ func GetProdukController(c echo.Context) error {
 }
 
 func CreateProdukController(c echo.Context) error {
-	var produk models.Produk
+	var produk models.Product
 	c.Bind(&produk)
 
 	if err := config.DB.Create(&produk).Error; err != nil {
@@ -51,11 +51,11 @@ func CreateProdukController(c echo.Context) error {
 }
 
 func UpdateProdukController(c echo.Context) error {
-	var produk models.Produk
+	var produk models.Product
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	var input models.Produk
+	var input models.Product
 	c.Bind(&input)
 
 	if err := config.DB.Model(&produk).Where("id = ?", id).Updates(input).Error; err != nil {
@@ -68,7 +68,7 @@ func UpdateProdukController(c echo.Context) error {
 }
 
 func DeleteProdukController(c echo.Context) error {
-	var produk models.Produk
+	var produk models.Product
 
 	id, _ := strconv.Atoi(c.Param("id"))
 

@@ -1,18 +1,21 @@
 package controllers
 
 import (
+	"encoding/json"
 	"erp/config"
 	"erp/models"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/gommon/log"
 	"gorm.io/gorm"
 )
 
 func GetBarangsController(c echo.Context) error {
-	var barangs []models.Barang_Masuk
+	var barangs []models.Incoming_goods
 
 	if err := config.DB.Preload("Gudang").Preload("Persediaan_Barang").Find(&barangs).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
@@ -25,7 +28,7 @@ func GetBarangsController(c echo.Context) error {
 }
 
 func GetBarangController(c echo.Context) error {
-	var barang models.Barang_Masuk
+	var barang models.Incoming_goods
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
@@ -40,89 +43,78 @@ func GetBarangController(c echo.Context) error {
 }
 
 func CreateBarangController(c echo.Context) error {
-	var barang models.Barang_Masuk
-	var persediaan models.Persediaan_Barang
+	var barang models.Incoming_goods
+	var persediaan models.Invetory
+	var input map[string]interface{}
 
-	qtyInt, _ := strconv.Atoi(c.FormValue("qty"))
-	gudang_idInt, _ := strconv.Atoi(c.FormValue("gudang_id"))
-	persediaan_barang_idInt, _ := strconv.Atoi(c.FormValue("persediaan_barang_id"))
+	body, _ := ioutil.ReadAll(c.Request().Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		log.Error("empty json body")
+		return nil
+	}
 
-	barang.No_BPB = c.FormValue("no_bpb")
-	barang.Qty = qtyInt
-	barang.Keterangan = c.FormValue("keterangan")
-	barang.GudangID = gudang_idInt
-	barang.Persediaan_BarangID = persediaan_barang_idInt
+	tgl_terima := input["tgl_terima"].(string)
+	dateFormat := "02/01/2006"
+	tgl, _ := time.Parse(dateFormat, tgl_terima)
+	input["tgl_terima"] = tgl
+	input["created_at"] = time.Now()
+	input["updated_at"] = time.Now()
 
-	tgl_terima := c.FormValue("tgl_terima")
-	dateFormat := "02/01/2006 MST"
-	value := tgl_terima + " WIB"
-	tgl, _ := time.Parse(dateFormat, value)
-	barang.Tgl_terima = tgl
-
-	if err := config.DB.Create(&barang).Error; err != nil {
+	if err := config.DB.Model(&barang).Create(&input).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
-	if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Updates(map[string]interface{}{
-		"qty":            gorm.Expr("qty + ?", qtyInt),
-		"last_input_qty": qtyInt,
-		"last_input_id":  persediaan_barang_idInt}).Error; err != nil {
+	if err := config.DB.Model(&persediaan).Where("id = ?", input["persediaan_barang_id"]).Updates(map[string]interface{}{
+		"qty":            gorm.Expr("qty + ?", input["qty"]),
+		"last_input_qty": input["qty"],
+		"last_input_id":  input["persediaan_barang_id"]}).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Qty error")
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success create new Barang",
-		"Barang":  barang,
+		"Barang":  input,
 	})
 }
 
 func UpdateBarangController(c echo.Context) error {
-	var barang models.Barang_Masuk
-	var persediaan models.Persediaan_Barang
+	var barang models.Incoming_goods
+	var persediaan models.Invetory
+	var input map[string]interface{}
 
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, _ := strconv.Atoi("id")
 
-	no_bpb := c.FormValue("no_bpb")
-	qty := c.FormValue("qty")
-	keterangan := c.FormValue("keterangan")
-	gudang_id := c.FormValue("gudang_id")
-	persediaan_barang_id := c.FormValue("persediaan_barang_id")
-	qtyInt, _ := strconv.Atoi(qty)
-	gudang_idInt, _ := strconv.Atoi(gudang_id)
-	persediaan_barang_idInt, _ := strconv.Atoi(persediaan_barang_id)
+	body, _ := ioutil.ReadAll(c.Request().Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		log.Error("empty json body")
+		return nil
+	}
 
-	var input models.Barang_Masuk
-
-	tgl_terima := c.FormValue("tgl_terima")
-	dateFormat := "02/01/2006 MST"
-	value := tgl_terima + " WIB"
-	tgl, _ := time.Parse(dateFormat, value)
-	barang.Tgl_terima = tgl
-
-	input.No_BPB = no_bpb
-	input.Tgl_terima = tgl
-	input.Qty = qtyInt
-	input.Keterangan = keterangan
-	input.GudangID = gudang_idInt
-	input.Persediaan_BarangID = persediaan_barang_idInt
+	tgl_terima := input["tgl_terima"].(string)
+	dateFormat := "02/01/2006"
+	tgl, _ := time.Parse(dateFormat, tgl_terima)
+	input["tgl_terima"] = tgl
+	input["updated_at"] = time.Now()
 
 	if err := config.DB.Model(&barang).Where("id = ?", id).Updates(input).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Record not found!")
 	}
 
-	if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Where("last_input_id = ?", persediaan_barang_idInt).Updates(map[string]interface{}{"qty": gorm.Expr("qty + ? - last_input_qty", qtyInt)}).Error; err != nil {
+	if err := config.DB.Model(&persediaan).Where("id = ?", input["persediaan_barang_id"]).Where("last_input_id = ?", input["persediaan_barang_id"]).Updates(map[string]interface{}{"qty": gorm.Expr("qty + ? - last_input_qty", input["qty"])}).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Qty error")
 	}
 
-	if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Where("last_input_id = ?", persediaan_barang_idInt).Updates(map[string]interface{}{"last_input_qty": qtyInt, "last_input_id": persediaan_barang_idInt}).Error; err != nil {
+	if err := config.DB.Model(&persediaan).Where("id = ?", input["persediaan_barang_id"]).Where("last_input_id = ?", input["persediaan_barang_id"]).Updates(map[string]interface{}{"last_input_qty": input["qty"], "last_input_id": input["persediaan_barang_id"]}).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Qty error")
 	}
 
-	// if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Where("last_input_id != ?", persediaan_barang_idInt).Updates(map[string]interface{}{"qty": gorm.Expr("qty - last_input_qty")}).Error; err != nil {
+	// if err := config.DB.Model(&persediaan).Where("id = ?", input["persediaan_barang_id"]).Where("last_input_id != ?", input["persediaan_barang_id"]).Updates(map[string]interface{}{"qty": gorm.Expr("qty - last_input_qty")}).Error; err != nil {
 	// 	return echo.NewHTTPError(http.StatusBadRequest, "Qty error")
 	// }
 
-	// if err := config.DB.Model(&persediaan).Where("id = ?", persediaan_barang_idInt).Where("last_input_id != ?", persediaan_barang_idInt).Updates(map[string]interface{}{"last_input_qty": qtyInt, "last_input_id": persediaan_barang_idInt}).Error; err != nil {
+	// if err := config.DB.Model(&persediaan).Where("id = ?", input["persediaan_barang_id"]).Where("last_input_id != ?", input["persediaan_barang_id"]).Updates(map[string]interface{}{"last_input_qty": input["qty"], "last_input_id": input["persediaan_barang_id"]}).Error; err != nil {
 	// 	return echo.NewHTTPError(http.StatusBadRequest, "Qty error")
 	// }
 
@@ -132,7 +124,7 @@ func UpdateBarangController(c echo.Context) error {
 }
 
 func DeleteBarangController(c echo.Context) error {
-	var barang models.Barang_Masuk
+	var barang models.Incoming_goods
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
